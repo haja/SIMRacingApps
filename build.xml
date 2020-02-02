@@ -50,7 +50,7 @@
     <target name="electron-apps.sra">
         <ant dir="${SIMRacingAppsElectron.location}" target="sra" inheritAll="false" />
     </target>
-    <target name="exe" description="Converts the jar files to an exe" depends="Server.jar,iRacing.sra,WebContent.jar,electron-apps.sra">
+    <target name="exe" description="Converts the jar files to an exe" depends="Server.jar,WebContent.jar">
         <sequential>
             <property file="${SIMRacingAppsServer.location}/src/com/SIMRacingApps/version.properties" prefix="version" />
             <property name="version" value="${version.major}.${version.minor}_Build_${version.build}" />
@@ -76,9 +76,7 @@
                     <attribute name="Main-Class" value="com.SIMRacingApps.Server" />
                 </manifest>
                 <zipgroupfileset file="${java.io.tmpdir}/SIMRacingAppsServer.jar" />
-                <zipgroupfileset file="${java.io.tmpdir}/SIMRacingAppsPlugin-iRacing.sra" />
                 <zipgroupfileset file="${java.io.tmpdir}/SIMRacingAppsWebContent.jar" />
-                <zipgroupfileset file="${java.io.tmpdir}/electron-apps.sra" />
                 <fileset dir="${java.io.tmpdir}">
                     <include name="SIMRacingAppsServer_${version}.l4j.ini" />
                 </fileset>
@@ -101,14 +99,15 @@
                         stayalive="true"
                         jar="${java.io.tmpdir}/SIMRacingApps.jar" 
                         errTitle="SIMRacingAppsServer" 
-                        downloadUrl="http://java.com/download" 
+                        downloadUrl="http://java.com/download"
                         icon="${SIMRacingAppsWebContent.location}/favicon.ico">
                     <classPath mainClass="com.SIMRacingApps.Server">
                         <!-- cp>%USERPROFILE%/Documents/SIMRacingApps</cp -->
                         <cp>%HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders\Personal%/SIMRacingApps</cp>
                     </classPath>
-                    <jre minVersion="1.8.0" 
-                         bundledJre64Bit="false" 
+                    <jre minVersion="1.8.0"
+                         path="%JAVA_HOME%"
+                         bundledJre64Bit="false"
                          bundledJreAsFallback="false" 
                          jdkPreference="preferJre" 
                          runtimeBits="64/32" 
@@ -140,7 +139,15 @@
           <arg line="javaw -jar ${jsign.jar} --alias '${key.alias}' --keystore '${key.store}' --storepass '${store.pass}' --storetype PKCS12 '${java.io.tmpdir}/SIMRacingAppsServer-signed.exe'"/>
         </exec>
     </target>
-    
+
+    <target name="deploy-unsigned" depends="exe">
+        <property file="${SIMRacingAppsServer.location}/src/com/SIMRacingApps/version.properties" prefix="version" />
+        <property name="version" value="${version.major}.${version.minor}_Build_${version.build}" />
+        <copy overwrite="true" file="${java.io.tmpdir}/SIMRacingAppsServer.exe" tofile="${deployment.dir}/SIMRacingAppsServer_${version}.exe" />
+        <copy overwrite="true" file="${java.io.tmpdir}/SIMRacingAppsServer.exe" tofile="${deployment.dir}/SIMRacingAppsServer.exe" />
+        <echo message="Remember to Tag all Git Repositories with: Version_${version}"/>
+    </target>
+
     <target name="deploy" depends="signed">
         <property file="${SIMRacingAppsServer.location}/src/com/SIMRacingApps/version.properties" prefix="version" />
         <property name="version" value="${version.major}.${version.minor}_Build_${version.build}" />
